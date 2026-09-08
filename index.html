@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>IFIUR · Prezzario</title>
+<meta name="description" content="IFIUR — calcolo del prezzo di vendita a partire dal costo fornitore" />
+
+<link rel="manifest" href="./manifest.json" />
+<meta name="theme-color" content="#241209" />
+<link rel="icon" href="./icon-192.png" />
+<link rel="apple-touch-icon" href="./icon-192.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="IFIUR" />
+
+<style>
+  :root {
+    --ink: #241209;
+    --ink-soft: #8A7266;
+    --paper: #FAF7F3;
+    --card: #FFFFFF;
+    --border: rgba(36, 18, 9, 0.13);
+    --rose: #C9201C;
+    --rose-dark: #A11813;
+    --rose-tint: rgba(201, 32, 28, 0.12);
+    --cream: #FAF7F3;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    justify-content: center;
+    padding: env(safe-area-inset-top, 0) 0 env(safe-area-inset-bottom, 0) 0;
+  }
+
+  main {
+    width: 100%;
+    max-width: 440px;
+    padding: 24px 20px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-height: 100dvh;
+  }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 36px;
+  }
+
+  .back-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border);
+    background: var(--card);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--ink);
+    flex-shrink: 0;
+  }
+
+  .back-btn svg { width: 16px; height: 16px; }
+
+  .progress {
+    display: flex;
+    gap: 6px;
+    flex: 1;
+  }
+
+  .progress .dot {
+    height: 4px;
+    border-radius: 999px;
+    background: var(--border);
+    flex: 1;
+    transition: background 0.2s ease;
+  }
+
+  .progress .dot.done {
+    background: var(--rose);
+  }
+
+  .step {
+    display: none;
+    flex-direction: column;
+    gap: 20px;
+    flex: 1;
+    animation: fadeIn 0.25s ease;
+  }
+
+  .step.visible {
+    display: flex;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .step-heading h1 {
+    font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+    font-weight: 400;
+    font-size: 26px;
+    line-height: 1.15;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+
+  .step-heading .eyebrow {
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-bottom: 4px;
+  }
+
+  .brand-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .brand-mark {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+
+  .version-badge {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--rose-dark);
+    background: var(--rose-tint);
+    padding: 3px 9px;
+    border-radius: 999px;
+    letter-spacing: 0.01em;
+  }
+
+  .category-choices {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .category-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border: 1.5px solid var(--border);
+    background: var(--card);
+    border-radius: 18px;
+    padding: 18px;
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+
+  .category-card:active {
+    transform: scale(0.99);
+  }
+
+  .category-card .emoji {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    background: var(--rose-tint);
+    flex-shrink: 0;
+  }
+
+  .category-card .cat-name {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .category-card .cat-desc {
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-top: 2px;
+  }
+
+  section.card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 20px;
+  }
+
+  label.field-label {
+    display: block;
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-bottom: 8px;
+  }
+
+  .cost-input-row {
+    display: flex;
+    align-items: baseline;
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 8px;
+    transition: border-color 0.15s ease;
+  }
+
+  .cost-input-row:focus-within {
+    border-bottom-color: var(--rose);
+  }
+
+  .cost-input-row .prefix {
+    font-family: Georgia, serif;
+    font-size: 30px;
+    color: var(--ink-soft);
+    margin-right: 6px;
+  }
+
+  .cost-input-row input {
+    border: none;
+    outline: none;
+    background: transparent;
+    font-family: Georgia, serif;
+    font-size: 36px;
+    color: var(--ink);
+    width: 100%;
+    padding: 0;
+  }
+
+  .cost-input-row input::placeholder {
+    color: rgba(27, 58, 43, 0.28);
+  }
+
+  .hint {
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-top: 8px;
+  }
+
+  .packaging-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .pack-btn {
+    border: 1.5px solid var(--border);
+    background: var(--paper);
+    border-radius: 14px;
+    padding: 14px 10px;
+    text-align: left;
+    cursor: pointer;
+    font-family: inherit;
+    color: var(--ink);
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+
+  .pack-btn .name {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .pack-btn .price {
+    display: block;
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-top: 2px;
+  }
+
+  .pack-btn.active {
+    border-color: var(--rose);
+    background: var(--rose-tint);
+  }
+
+  .pack-btn.active .price {
+    color: var(--rose-dark);
+  }
+
+  .pack-btn:active {
+    transform: scale(0.98);
+  }
+
+  .packaging-fixed {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1.5px solid var(--border);
+    background: var(--paper);
+    border-radius: 14px;
+    padding: 14px 16px;
+  }
+
+  .packaging-fixed .name {
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .packaging-fixed .price {
+    font-size: 14px;
+    color: var(--ink-soft);
+  }
+
+  .accessory-toggle-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .accessory-toggle-row .name {
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .accessory-toggle-row .desc {
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-top: 2px;
+  }
+
+  .switch {
+    position: relative;
+    width: 46px;
+    height: 27px;
+    flex-shrink: 0;
+  }
+
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .switch .slider {
+    position: absolute;
+    inset: 0;
+    background: var(--border);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  .switch .slider::before {
+    content: "";
+    position: absolute;
+    width: 21px;
+    height: 21px;
+    left: 3px;
+    top: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.15s ease;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  }
+
+  .switch input:checked + .slider {
+    background: var(--rose);
+  }
+
+  .switch input:checked + .slider::before {
+    transform: translateX(19px);
+  }
+
+  .stack-gap {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .breakdown-group-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .breakdown-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    color: var(--ink-soft);
+  }
+
+  .breakdown-row span.val {
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .breakdown-row.divider {
+    border-top: 1px dashed var(--border);
+    padding-top: 10px;
+    margin-top: 2px;
+  }
+
+  .breakdown-row.subtotal span {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  .result {
+    background: var(--ink);
+    border-radius: 18px;
+    padding: 22px 20px;
+    color: var(--cream);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .result .label {
+    font-size: 13px;
+    opacity: 0.75;
+  }
+
+  .result .amount {
+    font-family: Georgia, serif;
+    font-size: 44px;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .result .sub {
+    font-size: 12px;
+    opacity: 0.6;
+    margin-top: 4px;
+  }
+
+  .spacer { flex: 1; }
+
+  .primary-btn {
+    border: none;
+    background: var(--ink);
+    color: var(--cream);
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 600;
+    padding: 16px;
+    border-radius: 14px;
+    cursor: pointer;
+    width: 100%;
+  }
+
+  .primary-btn:active {
+    transform: scale(0.99);
+  }
+
+  .secondary-btn {
+    border: 1.5px solid var(--border);
+    background: transparent;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    padding: 14px;
+    border-radius: 14px;
+    cursor: pointer;
+    width: 100%;
+  }
+
+  footer {
+    text-align: center;
+    font-size: 12px;
+    color: var(--ink-soft);
+    opacity: 0.7;
+  }
+</style>
+</head>
+<body>
+<main>
+
+  <div class="topbar">
+    <button class="back-btn" id="back-btn" style="visibility:hidden;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <div class="progress" id="progress"></div>
+  </div>
+
+  <!-- STEP 1: categoria -->
+  <div class="step visible" id="step-1">
+    <div class="step-heading">
+      <div class="brand-row">
+        <img src="./logo-mark.png" class="brand-mark" alt="IFIUR" />
+        <div class="eyebrow" style="margin-bottom:0;">IFIUR · Prezzario interno</div>
+        <span class="version-badge">v0.1 beta</span>
+      </div>
+      <h1 style="margin-top:10px;">Cosa stai prezzando?</h1>
+    </div>
+    <div class="category-choices">
+      <button class="category-card" data-cat="fiori">
+        <div class="emoji">🌷</div>
+        <div>
+          <div class="cat-name">Fiori recisi</div>
+          <div class="cat-desc">Markup ×3 · packaging a scelta</div>
+        </div>
+      </button>
+      <button class="category-card" data-cat="piante">
+        <div class="emoji">🪴</div>
+        <div>
+          <div class="cat-name">Piante</div>
+          <div class="cat-desc">Markup ×2 · coprivaso opzionale</div>
+        </div>
+      </button>
+    </div>
+    <div class="spacer"></div>
+  </div>
+
+  <!-- STEP 2: costo -->
+  <div class="step" id="step-2">
+    <div class="step-heading">
+      <div class="eyebrow" id="step2-eyebrow">Fiori recisi</div>
+      <h1>Quanto costa dal fornitore?</h1>
+    </div>
+    <section class="card">
+      <label class="field-label" for="costo">Costo fornitore (IVA esclusa)</label>
+      <div class="cost-input-row">
+        <span class="prefix">€</span>
+        <input type="number" id="costo" inputmode="decimal" placeholder="0,00" min="0" step="0.01" autofocus />
+      </div>
+      <div class="hint" id="cost-hint">Prezzo pagato al fornitore, IVA 10% esclusa</div>
+    </section>
+    <div class="spacer"></div>
+    <button class="primary-btn" id="to-step-3">Avanti</button>
+    <button class="secondary-btn" data-reset>Nuovo calcolo</button>
+  </div>
+
+  <!-- STEP 3: packaging -->
+  <div class="step" id="step-3">
+    <div class="step-heading">
+      <div class="eyebrow" id="step3-eyebrow">Fiori recisi</div>
+      <h1>Che packaging serve?</h1>
+    </div>
+
+    <section class="card stack-gap">
+      <div class="packaging-grid" id="packaging-grid">
+        <button class="pack-btn" data-value="0"><span class="name">Nessuno</span><span class="price">€0,00</span></button>
+        <button class="pack-btn" data-value="3"><span class="name">Minimo</span><span class="price">€3,00</span></button>
+        <button class="pack-btn" data-value="4.5"><span class="name">Medio</span><span class="price">€4,50</span></button>
+        <button class="pack-btn" data-value="6"><span class="name">Elevato</span><span class="price">€6,00</span></button>
+      </div>
+
+      <div class="packaging-fixed" id="packaging-fixed" style="display:none;">
+        <span class="name">Packaging standard</span>
+        <span class="price" id="packaging-fixed-price">€1,00</span>
+      </div>
+
+      <div class="accessory-toggle-row" id="accessory-toggle-row" style="display:none;">
+        <div>
+          <div class="name">Coprivaso</div>
+          <div class="desc">Extra, calcolato con IVA 22%</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="accessory-toggle" />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div id="accessory-card" style="display:none;">
+        <label class="field-label" for="costo-coprivaso">Costo coprivaso (IVA esclusa)</label>
+        <div class="cost-input-row">
+          <span class="prefix">€</span>
+          <input type="number" id="costo-coprivaso" inputmode="decimal" placeholder="0,00" min="0" step="0.01" />
+        </div>
+        <div class="hint">Prezzo pagato al fornitore per il coprivaso, IVA 22% esclusa</div>
+      </div>
+    </section>
+
+    <div class="spacer"></div>
+    <button class="primary-btn" id="to-step-4">Calcola prezzo</button>
+    <button class="secondary-btn" data-reset>Nuovo calcolo</button>
+  </div>
+
+  <!-- STEP 4: risultato -->
+  <div class="step" id="step-4">
+    <div class="step-heading">
+      <div class="eyebrow" id="step4-eyebrow">Fiori recisi</div>
+      <h1>Prezzo di vendita</h1>
+    </div>
+
+    <div class="result">
+      <div class="label" id="result-label">Prezzo di vendita</div>
+      <div class="amount" id="prezzo-finale">€0,00</div>
+      <div class="sub" id="result-sub">IVA inclusa · arrotondato all'euro</div>
+    </div>
+
+    <section class="card breakdown" id="breakdown-card">
+      <div class="breakdown-group-title" id="group-title-main">Fiori recisi</div>
+      <div class="breakdown-row">
+        <span>Costo fornitore (IVA escl.)</span>
+        <span class="val" id="b-costo">€0,00</span>
+      </div>
+      <div class="breakdown-row">
+        <span id="b-iva-acquisto-label">+ IVA 10% (costo pagato)</span>
+        <span class="val" id="b-costo-iva">€0,00</span>
+      </div>
+      <div class="breakdown-row">
+        <span id="b-markup-label">× 3 (prezzo base)</span>
+        <span class="val" id="b-base">€0,00</span>
+      </div>
+      <div class="breakdown-row">
+        <span>+ Packaging</span>
+        <span class="val" id="b-packaging">€0,00</span>
+      </div>
+      <div class="breakdown-row">
+        <span id="b-iva-finale-label">+ IVA 10% (su vendita)</span>
+        <span class="val" id="b-iva-finale">€0,00</span>
+      </div>
+      <div class="breakdown-row subtotal divider">
+        <span id="b-subtotal-label">Prezzo pianta/fiore</span>
+        <span class="val" id="b-subtotal">€0,00</span>
+      </div>
+
+      <div id="accessory-breakdown" style="display:none;">
+        <div class="breakdown-group-title">Coprivaso</div>
+        <div class="breakdown-row">
+          <span>Costo fornitore (IVA escl.)</span>
+          <span class="val" id="ac-costo">€0,00</span>
+        </div>
+        <div class="breakdown-row">
+          <span>+ IVA 22% (costo pagato)</span>
+          <span class="val" id="ac-costo-iva">€0,00</span>
+        </div>
+        <div class="breakdown-row">
+          <span>× 2 (prezzo base)</span>
+          <span class="val" id="ac-base">€0,00</span>
+        </div>
+        <div class="breakdown-row">
+          <span>+ IVA 22% (su vendita)</span>
+          <span class="val" id="ac-iva-finale">€0,00</span>
+        </div>
+        <div class="breakdown-row subtotal divider">
+          <span>Prezzo coprivaso</span>
+          <span class="val" id="ac-subtotal">€0,00</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="spacer"></div>
+    <button class="secondary-btn" id="new-calc">Nuovo calcolo</button>
+  </div>
+
+  <footer id="footer-note">Fiori recisi · markup ×3 · IVA 10%</footer>
+  <div style="text-align:center; font-size:11px; color:var(--ink-soft); opacity:0.55; margin-top:-8px;">IFIUR · v0.1 (beta)</div>
+
+</main>
+
+<script>
+  const CATEGORIES = {
+    fiori: {
+      label: "Fiori recisi",
+      markup: 3,
+      ivaAcquisto: 1.10,
+      ivaVendita: 1.10,
+      packagingType: "selectable",
+      hasAccessory: false,
+      costHint: "Prezzo pagato al fornitore per lo stelo, IVA 10% esclusa",
+      footerNote: "Fiori recisi · markup ×3 · IVA 10% · arrotondato all'euro",
+      subtotalLabel: "Prezzo fiori"
+    },
+    piante: {
+      label: "Piante",
+      markup: 2,
+      ivaAcquisto: 1.10,
+      ivaVendita: 1.10,
+      packagingType: "fixed",
+      fixedPackaging: 1,
+      hasAccessory: true,
+      costHint: "Prezzo pagato al fornitore per la pianta, IVA 10% esclusa",
+      footerNote: "Piante · markup ×2 · IVA 10% · arrotondato all'euro",
+      subtotalLabel: "Prezzo pianta"
+    }
+  };
+
+  const ACCESSORY = { markup: 2, ivaAcquisto: 1.22, ivaVendita: 1.22 };
+
+  let currentCategory = "fiori";
+  let packagingValue = 0;
+  let accessoryEnabled = false;
+  let currentStep = 1;
+  const TOTAL_STEPS = 4;
+
+  const costoInput = document.getElementById("costo");
+  const costoCoprivasoInput = document.getElementById("costo-coprivaso");
+  const packButtons = document.querySelectorAll(".pack-btn");
+  const packagingGrid = document.getElementById("packaging-grid");
+  const packagingFixed = document.getElementById("packaging-fixed");
+  const packagingFixedPrice = document.getElementById("packaging-fixed-price");
+  const accessoryToggleRow = document.getElementById("accessory-toggle-row");
+  const accessoryToggle = document.getElementById("accessory-toggle");
+  const accessoryCard = document.getElementById("accessory-card");
+  const accessoryBreakdown = document.getElementById("accessory-breakdown");
+  const progressEl = document.getElementById("progress");
+  const backBtn = document.getElementById("back-btn");
+
+  function formatEUR(n) {
+    return n.toLocaleString("it-IT", { style: "currency", currency: "EUR" });
+  }
+
+  function renderProgress() {
+    progressEl.innerHTML = "";
+    for (let i = 1; i <= TOTAL_STEPS; i++) {
+      const dot = document.createElement("div");
+      dot.className = "dot" + (i <= currentStep ? " done" : "");
+      progressEl.appendChild(dot);
+    }
+    backBtn.style.visibility = currentStep === 1 ? "hidden" : "visible";
+  }
+
+  function goToStep(n) {
+    document.querySelectorAll(".step").forEach((s) => s.classList.remove("visible"));
+    document.getElementById("step-" + n).classList.add("visible");
+    currentStep = n;
+    renderProgress();
+    if (n === 2) {
+      setTimeout(() => costoInput.focus(), 50);
+    }
+  }
+
+  function selectCategory(cat) {
+    currentCategory = cat;
+    const config = CATEGORIES[cat];
+
+    document.getElementById("step2-eyebrow").textContent = config.label;
+    document.getElementById("step3-eyebrow").textContent = config.label;
+    document.getElementById("step4-eyebrow").textContent = config.label;
+    document.getElementById("cost-hint").textContent = config.costHint;
+    document.getElementById("footer-note").textContent = config.footerNote;
+    document.getElementById("group-title-main").textContent = config.label;
+    document.getElementById("b-markup-label").textContent = "× " + config.markup + " (prezzo base)";
+    document.getElementById("b-iva-acquisto-label").textContent = "+ IVA " + Math.round((config.ivaAcquisto - 1) * 100) + "% (costo pagato)";
+    document.getElementById("b-iva-finale-label").textContent = "+ IVA " + Math.round((config.ivaVendita - 1) * 100) + "% (su vendita)";
+    document.getElementById("b-subtotal-label").textContent = config.subtotalLabel;
+
+    if (config.packagingType === "selectable") {
+      packagingGrid.style.display = "grid";
+      packagingFixed.style.display = "none";
+      const activeBtn = document.querySelector(".pack-btn.active") || packButtons[0];
+      packagingValue = parseFloat(activeBtn.dataset.value);
+      packButtons.forEach((b) => b.classList.toggle("active", b === activeBtn));
+    } else {
+      packagingGrid.style.display = "none";
+      packagingFixed.style.display = "flex";
+      packagingValue = config.fixedPackaging;
+      packagingFixedPrice.textContent = formatEUR(config.fixedPackaging);
+    }
+
+    if (config.hasAccessory) {
+      accessoryToggleRow.style.display = "flex";
+    } else {
+      accessoryToggleRow.style.display = "none";
+      accessoryToggle.checked = false;
+      accessoryEnabled = false;
+      accessoryCard.style.display = "none";
+      accessoryBreakdown.style.display = "none";
+    }
+
+    goToStep(2);
+  }
+
+  function calculate() {
+    const config = CATEGORIES[currentCategory];
+    const costoFornitore = parseFloat(costoInput.value) || 0;
+    const costoPagato = costoFornitore * config.ivaAcquisto;
+    const prezzoBase = costoPagato * config.markup;
+    const prezzoConPackaging = prezzoBase + packagingValue;
+    const ivaFinale = prezzoConPackaging * (config.ivaVendita - 1);
+    const prezzoMainEsatto = prezzoConPackaging * config.ivaVendita;
+    const prezzoMain = Math.round(prezzoMainEsatto);
+
+    document.getElementById("b-costo").textContent = formatEUR(costoFornitore);
+    document.getElementById("b-costo-iva").textContent = formatEUR(costoPagato);
+    document.getElementById("b-base").textContent = formatEUR(prezzoBase);
+    document.getElementById("b-packaging").textContent = formatEUR(packagingValue);
+    document.getElementById("b-iva-finale").textContent = formatEUR(ivaFinale);
+    document.getElementById("b-subtotal").textContent = formatEUR(prezzoMainEsatto) + " → " + formatEUR(prezzoMain);
+
+    let prezzoAccessorio = 0;
+
+    if (config.hasAccessory && accessoryEnabled) {
+      const costoAcc = parseFloat(costoCoprivasoInput.value) || 0;
+      const costoAccPagato = costoAcc * ACCESSORY.ivaAcquisto;
+      const baseAcc = costoAccPagato * ACCESSORY.markup;
+      const ivaFinaleAcc = baseAcc * (ACCESSORY.ivaVendita - 1);
+      const prezzoAccessorioEsatto = baseAcc * ACCESSORY.ivaVendita;
+      prezzoAccessorio = Math.round(prezzoAccessorioEsatto);
+
+      document.getElementById("ac-costo").textContent = formatEUR(costoAcc);
+      document.getElementById("ac-costo-iva").textContent = formatEUR(costoAccPagato);
+      document.getElementById("ac-base").textContent = formatEUR(baseAcc);
+      document.getElementById("ac-iva-finale").textContent = formatEUR(ivaFinaleAcc);
+      document.getElementById("ac-subtotal").textContent = formatEUR(prezzoAccessorioEsatto) + " → " + formatEUR(prezzoAccessorio);
+    }
+
+    const totale = prezzoMain + prezzoAccessorio;
+    document.getElementById("prezzo-finale").textContent = formatEUR(totale);
+
+    if (config.hasAccessory && accessoryEnabled) {
+      document.getElementById("result-label").textContent = "Prezzo di vendita totale";
+      document.getElementById("result-sub").textContent = "Pianta (IVA 10%) + coprivaso (IVA 22%)";
+    } else {
+      document.getElementById("result-label").textContent = "Prezzo di vendita";
+      document.getElementById("result-sub").textContent = "IVA inclusa · arrotondato all'euro";
+    }
+  }
+
+  document.querySelectorAll(".category-card").forEach((btn) => {
+    btn.addEventListener("click", () => selectCategory(btn.dataset.cat));
+  });
+
+  document.getElementById("to-step-3").addEventListener("click", () => goToStep(3));
+
+  document.getElementById("to-step-4").addEventListener("click", () => {
+    calculate();
+    goToStep(4);
+  });
+
+  function resetAll() {
+    costoInput.value = "";
+    costoCoprivasoInput.value = "";
+    goToStep(1);
+  }
+
+  document.getElementById("new-calc").addEventListener("click", resetAll);
+  document.querySelectorAll("[data-reset]").forEach((btn) => {
+    btn.addEventListener("click", resetAll);
+  });
+
+  backBtn.addEventListener("click", () => {
+    if (currentStep > 1) goToStep(currentStep - 1);
+  });
+
+  packButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      packButtons.forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      packagingValue = parseFloat(btn.dataset.value);
+    });
+  });
+
+  accessoryToggle.addEventListener("change", () => {
+    accessoryEnabled = accessoryToggle.checked;
+    accessoryCard.style.display = accessoryEnabled ? "block" : "none";
+    accessoryBreakdown.style.display = accessoryEnabled ? "block" : "none";
+  });
+
+  packButtons[0].classList.add("active");
+  renderProgress();
+
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("./service-worker.js").catch(() => {});
+    });
+  }
+</script>
+
+</body>
+</html>
