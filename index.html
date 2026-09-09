@@ -849,6 +849,15 @@
     }
   });
 
+  // The browser's default scroll-into-view for a newly-revealed field
+  // (shown after toggling the accessory switch) can leave the input
+  // itself just above the visible area. Force a centered scroll instead.
+  costoCoprivasoInput.addEventListener("focus", () => {
+    setTimeout(() => {
+      costoCoprivasoInput.scrollIntoView({ block: "center", behavior: "smooth" });
+    }, 300);
+  });
+
   document.getElementById("btn-step2-next").addEventListener("click", goToStep3);
   document.getElementById("btn-step3-next").addEventListener("click", goToStep4);
 
