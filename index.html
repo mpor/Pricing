@@ -447,28 +447,11 @@
     margin-top: 4px;
   }
 
-  .bottom-spacer {
-    height: 108px;
-  }
-
-  .bottom-actions {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    display: none;
+  .step-actions {
+    display: flex;
     flex-direction: column;
     gap: 10px;
-    padding: 14px 20px calc(14px + env(safe-area-inset-bottom, 0));
-    background: var(--paper);
-    border-top: 1px solid var(--border);
-    max-width: 440px;
-    margin: 0 auto;
-    box-sizing: border-box;
-  }
-
-  .bottom-actions.visible {
-    display: flex;
+    margin-top: 4px;
   }
 
   .primary-btn {
@@ -561,6 +544,10 @@
       </div>
       <div class="hint" id="cost-hint">Prezzo pagato al fornitore, IVA esclusa</div>
     </section>
+    <div class="step-actions">
+      <button class="primary-btn" id="btn-step2-next">Avanti</button>
+      <button class="secondary-btn" data-reset>Nuovo calcolo</button>
+    </div>
   </div>
 
   <!-- STEP 3: packaging -->
@@ -603,6 +590,10 @@
         <div class="hint">Prezzo pagato al fornitore per il coprivaso, IVA esclusa</div>
       </div>
     </section>
+    <div class="step-actions">
+      <button class="primary-btn" id="btn-step3-next">Calcola prezzo</button>
+      <button class="secondary-btn" data-reset>Nuovo calcolo</button>
+    </div>
   </div>
 
   <!-- STEP 4: risultato -->
@@ -668,19 +659,15 @@
         </div>
       </div>
     </section>
+    <div class="step-actions">
+      <button class="secondary-btn" id="btn-step4-reset">Nuovo calcolo</button>
+    </div>
   </div>
 
   <footer id="footer-note">Fiori recisi · markup ×3 · IVA 10%</footer>
   <div style="text-align:center; font-size:11px; color:var(--ink-soft); opacity:0.55; margin-top:-8px;">IFIUR · v0.2 (beta)</div>
 
-  <div class="bottom-spacer" id="bottom-spacer"></div>
-
 </main>
-
-<div class="bottom-actions" id="bottom-actions">
-  <button class="primary-btn" id="footer-primary">Avanti</button>
-  <button class="secondary-btn" id="footer-secondary">Nuovo calcolo</button>
-</div>
 
 <script>
   const CATEGORIES = {
@@ -727,10 +714,6 @@
   const accessoryBreakdown = document.getElementById("accessory-breakdown");
   const progressEl = document.getElementById("progress");
   const backBtn = document.getElementById("back-btn");
-  const bottomActions = document.getElementById("bottom-actions");
-  const footerPrimary = document.getElementById("footer-primary");
-  const footerSecondary = document.getElementById("footer-secondary");
-  const bottomSpacer = document.getElementById("bottom-spacer");
 
   function formatEUR(n) {
     return n.toLocaleString("it-IT", { style: "currency", currency: "EUR" });
@@ -746,31 +729,11 @@
     backBtn.style.visibility = currentStep === 1 ? "hidden" : "visible";
   }
 
-  function updateFooter(n) {
-    if (n === 1) {
-      bottomActions.classList.remove("visible");
-      bottomSpacer.style.display = "none";
-      return;
-    }
-    bottomActions.classList.add("visible");
-    bottomSpacer.style.display = "block";
-    if (n === 2) {
-      footerPrimary.style.display = "block";
-      footerPrimary.textContent = "Avanti";
-    } else if (n === 3) {
-      footerPrimary.style.display = "block";
-      footerPrimary.textContent = "Calcola prezzo";
-    } else {
-      footerPrimary.style.display = "none";
-    }
-  }
-
   function goToStep(n) {
     document.querySelectorAll(".step").forEach((s) => s.classList.remove("visible"));
     document.getElementById("step-" + n).classList.add("visible");
     currentStep = n;
     renderProgress();
-    updateFooter(n);
     if (n === 2) {
       setTimeout(() => costoInput.focus(), 50);
     }
@@ -862,20 +825,20 @@
     btn.addEventListener("click", () => selectCategory(btn.dataset.cat));
   });
 
-  function handleFooterPrimary() {
-    if (currentStep === 2) {
-      goToStep(3);
-    } else if (currentStep === 3) {
-      calculate();
-      goToStep(4);
-    }
+  function goToStep3() {
+    goToStep(3);
+  }
+
+  function goToStep4() {
+    calculate();
+    goToStep(4);
   }
 
   costoInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
       costoInput.blur();
-      handleFooterPrimary();
+      goToStep3();
     }
   });
 
@@ -886,7 +849,8 @@
     }
   });
 
-  footerPrimary.addEventListener("click", handleFooterPrimary);
+  document.getElementById("btn-step2-next").addEventListener("click", goToStep3);
+  document.getElementById("btn-step3-next").addEventListener("click", goToStep4);
 
   function resetAll() {
     costoInput.value = "";
@@ -894,7 +858,10 @@
     goToStep(1);
   }
 
-  footerSecondary.addEventListener("click", resetAll);
+  document.getElementById("btn-step4-reset").addEventListener("click", resetAll);
+  document.querySelectorAll("[data-reset]").forEach((btn) => {
+    btn.addEventListener("click", resetAll);
+  });
 
   backBtn.addEventListener("click", () => {
     if (currentStep > 1) goToStep(currentStep - 1);
@@ -916,22 +883,6 @@
 
   packButtons[0].classList.add("active");
   renderProgress();
-  updateFooter(1);
-
-  // Keep the fixed action bar pinned right above the on-screen keyboard.
-  // CSS position:fixed alone can behave inconsistently inside embedded
-  // webviews (e.g. in-app browsers), so we actively track the visible
-  // viewport size/offset and reposition the bar to match.
-  if (window.visualViewport) {
-    const vv = window.visualViewport;
-    function adjustForKeyboard() {
-      const offsetBottom = window.innerHeight - vv.height - vv.offsetTop;
-      bottomActions.style.bottom = Math.max(0, offsetBottom) + "px";
-    }
-    vv.addEventListener("resize", adjustForKeyboard);
-    vv.addEventListener("scroll", adjustForKeyboard);
-    adjustForKeyboard();
-  }
 
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
