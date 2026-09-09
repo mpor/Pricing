@@ -536,7 +536,7 @@
       <label class="field-label" for="costo">Costo fornitore (IVA esclusa)</label>
       <div class="cost-input-row">
         <span class="prefix">€</span>
-        <input type="number" id="costo" inputmode="decimal" placeholder="0,00" min="0" step="0.01" autofocus />
+        <input type="number" id="costo" inputmode="decimal" enterkeyhint="next" placeholder="0,00" min="0" step="0.01" autofocus />
       </div>
       <div class="hint" id="cost-hint">Prezzo pagato al fornitore, IVA esclusa</div>
     </section>
@@ -580,7 +580,7 @@
         <label class="field-label" for="costo-coprivaso">Costo coprivaso (IVA esclusa)</label>
         <div class="cost-input-row">
           <span class="prefix">€</span>
-          <input type="number" id="costo-coprivaso" inputmode="decimal" placeholder="0,00" min="0" step="0.01" />
+          <input type="number" id="costo-coprivaso" inputmode="decimal" enterkeyhint="done" placeholder="0,00" min="0" step="0.01" />
         </div>
         <div class="hint">Prezzo pagato al fornitore per il coprivaso, IVA esclusa</div>
       </div>
@@ -821,6 +821,35 @@
   });
 
   document.getElementById("to-step-3").addEventListener("click", () => goToStep(3));
+
+  costoInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      costoInput.blur();
+      goToStep(3);
+    }
+  });
+
+  costoCoprivasoInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      costoCoprivasoInput.blur();
+    }
+  });
+
+  // On mobile, the keyboard can cover the primary action button while typing.
+  // When a numeric field gains focus, scroll its step's button into view
+  // once the keyboard has finished animating in, so it stays reachable
+  // without needing to dismiss the keyboard first.
+  function scrollButtonIntoView(buttonId) {
+    setTimeout(() => {
+      const btn = document.getElementById(buttonId);
+      if (btn) btn.scrollIntoView({ block: "end", behavior: "smooth" });
+    }, 350);
+  }
+
+  costoInput.addEventListener("focus", () => scrollButtonIntoView("to-step-3"));
+  costoCoprivasoInput.addEventListener("focus", () => scrollButtonIntoView("to-step-4"));
 
   document.getElementById("to-step-4").addEventListener("click", () => {
     calculate();
