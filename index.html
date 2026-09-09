@@ -918,6 +918,21 @@
   renderProgress();
   updateFooter(1);
 
+  // Keep the fixed action bar pinned right above the on-screen keyboard.
+  // CSS position:fixed alone can behave inconsistently inside embedded
+  // webviews (e.g. in-app browsers), so we actively track the visible
+  // viewport size/offset and reposition the bar to match.
+  if (window.visualViewport) {
+    const vv = window.visualViewport;
+    function adjustForKeyboard() {
+      const offsetBottom = window.innerHeight - vv.height - vv.offsetTop;
+      bottomActions.style.bottom = Math.max(0, offsetBottom) + "px";
+    }
+    vv.addEventListener("resize", adjustForKeyboard);
+    vv.addEventListener("scroll", adjustForKeyboard);
+    adjustForKeyboard();
+  }
+
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
       navigator.serviceWorker.register("./service-worker.js").catch(() => {});
