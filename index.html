@@ -538,7 +538,7 @@
         <span class="prefix">€</span>
         <input type="number" id="costo" inputmode="decimal" placeholder="0,00" min="0" step="0.01" autofocus />
       </div>
-      <div class="hint" id="cost-hint">Prezzo pagato al fornitore, IVA 10% esclusa</div>
+      <div class="hint" id="cost-hint">Prezzo pagato al fornitore, IVA esclusa</div>
     </section>
     <div class="spacer"></div>
     <button class="primary-btn" id="to-step-3">Avanti</button>
@@ -582,7 +582,7 @@
           <span class="prefix">€</span>
           <input type="number" id="costo-coprivaso" inputmode="decimal" placeholder="0,00" min="0" step="0.01" />
         </div>
-        <div class="hint">Prezzo pagato al fornitore per il coprivaso, IVA 22% esclusa</div>
+        <div class="hint">Prezzo pagato al fornitore per il coprivaso, IVA esclusa</div>
       </div>
     </section>
 
@@ -611,16 +611,16 @@
         <span class="val" id="b-costo">€0,00</span>
       </div>
       <div class="breakdown-row">
-        <span id="b-iva-acquisto-label">+ IVA 10% (costo pagato)</span>
-        <span class="val" id="b-costo-iva">€0,00</span>
-      </div>
-      <div class="breakdown-row">
         <span id="b-markup-label">× 3 (prezzo base)</span>
         <span class="val" id="b-base">€0,00</span>
       </div>
       <div class="breakdown-row">
         <span>+ Packaging</span>
         <span class="val" id="b-packaging">€0,00</span>
+      </div>
+      <div class="breakdown-row" style="display:none;">
+        <span id="b-costo-iva"></span>
+        <span id="b-iva-acquisto-label"></span>
       </div>
       <div class="breakdown-row">
         <span id="b-iva-finale-label">+ IVA 10% (su vendita)</span>
@@ -637,9 +637,8 @@
           <span>Costo fornitore (IVA escl.)</span>
           <span class="val" id="ac-costo">€0,00</span>
         </div>
-        <div class="breakdown-row">
-          <span>+ IVA 22% (costo pagato)</span>
-          <span class="val" id="ac-costo-iva">€0,00</span>
+        <div class="breakdown-row" style="display:none;">
+          <span id="ac-costo-iva"></span>
         </div>
         <div class="breakdown-row">
           <span>× 2 (prezzo base)</span>
@@ -670,29 +669,27 @@
     fiori: {
       label: "Fiori recisi",
       markup: 3,
-      ivaAcquisto: 1.10,
       ivaVendita: 1.10,
       packagingType: "selectable",
       hasAccessory: false,
-      costHint: "Prezzo pagato al fornitore per lo stelo, IVA 10% esclusa",
+      costHint: "Prezzo pagato al fornitore per lo stelo, IVA esclusa",
       footerNote: "Fiori recisi · markup ×3 · IVA 10% · arrotondato all'euro",
       subtotalLabel: "Prezzo fiori"
     },
     piante: {
       label: "Piante",
       markup: 2,
-      ivaAcquisto: 1.10,
       ivaVendita: 1.10,
       packagingType: "fixed",
       fixedPackaging: 1,
       hasAccessory: true,
-      costHint: "Prezzo pagato al fornitore per la pianta, IVA 10% esclusa",
+      costHint: "Prezzo pagato al fornitore per la pianta, IVA esclusa",
       footerNote: "Piante · markup ×2 · IVA 10% · arrotondato all'euro",
       subtotalLabel: "Prezzo pianta"
     }
   };
 
-  const ACCESSORY = { markup: 2, ivaAcquisto: 1.22, ivaVendita: 1.22 };
+  const ACCESSORY = { markup: 2, ivaVendita: 1.22 };
 
   let currentCategory = "fiori";
   let packagingValue = 0;
@@ -748,7 +745,6 @@
     document.getElementById("footer-note").textContent = config.footerNote;
     document.getElementById("group-title-main").textContent = config.label;
     document.getElementById("b-markup-label").textContent = "× " + config.markup + " (prezzo base)";
-    document.getElementById("b-iva-acquisto-label").textContent = "+ IVA " + Math.round((config.ivaAcquisto - 1) * 100) + "% (costo pagato)";
     document.getElementById("b-iva-finale-label").textContent = "+ IVA " + Math.round((config.ivaVendita - 1) * 100) + "% (su vendita)";
     document.getElementById("b-subtotal-label").textContent = config.subtotalLabel;
 
@@ -781,15 +777,13 @@
   function calculate() {
     const config = CATEGORIES[currentCategory];
     const costoFornitore = parseFloat(costoInput.value) || 0;
-    const costoPagato = costoFornitore * config.ivaAcquisto;
-    const prezzoBase = costoPagato * config.markup;
+    const prezzoBase = costoFornitore * config.markup;
     const prezzoConPackaging = prezzoBase + packagingValue;
     const ivaFinale = prezzoConPackaging * (config.ivaVendita - 1);
     const prezzoMainEsatto = prezzoConPackaging * config.ivaVendita;
     const prezzoMain = Math.round(prezzoMainEsatto);
 
     document.getElementById("b-costo").textContent = formatEUR(costoFornitore);
-    document.getElementById("b-costo-iva").textContent = formatEUR(costoPagato);
     document.getElementById("b-base").textContent = formatEUR(prezzoBase);
     document.getElementById("b-packaging").textContent = formatEUR(packagingValue);
     document.getElementById("b-iva-finale").textContent = formatEUR(ivaFinale);
@@ -799,14 +793,12 @@
 
     if (config.hasAccessory && accessoryEnabled) {
       const costoAcc = parseFloat(costoCoprivasoInput.value) || 0;
-      const costoAccPagato = costoAcc * ACCESSORY.ivaAcquisto;
-      const baseAcc = costoAccPagato * ACCESSORY.markup;
+      const baseAcc = costoAcc * ACCESSORY.markup;
       const ivaFinaleAcc = baseAcc * (ACCESSORY.ivaVendita - 1);
       const prezzoAccessorioEsatto = baseAcc * ACCESSORY.ivaVendita;
       prezzoAccessorio = Math.round(prezzoAccessorioEsatto);
 
       document.getElementById("ac-costo").textContent = formatEUR(costoAcc);
-      document.getElementById("ac-costo-iva").textContent = formatEUR(costoAccPagato);
       document.getElementById("ac-base").textContent = formatEUR(baseAcc);
       document.getElementById("ac-iva-finale").textContent = formatEUR(ivaFinaleAcc);
       document.getElementById("ac-subtotal").textContent = formatEUR(prezzoAccessorioEsatto) + " → " + formatEUR(prezzoAccessorio);
