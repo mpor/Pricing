@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
-<title>IFIUR · Prezzario</title>
+<title>Prezzario IFIUR</title>
 <meta name="description" content="IFIUR — calcolo del prezzo di vendita a partire dal costo fornitore" />
 
 <link rel="manifest" href="./manifest.json" />
@@ -12,7 +12,7 @@
 <link rel="apple-touch-icon" href="./icon-192.png" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<meta name="apple-mobile-web-app-title" content="IFIUR" />
+<meta name="apple-mobile-web-app-title" content="Prezzario IFIUR" />
 
 <style>
   :root {
@@ -390,6 +390,13 @@
     gap: 10px;
   }
 
+  #accessory-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 4px;
+  }
+
   .breakdown-group-title {
     font-size: 12px;
     font-weight: 700;
@@ -507,8 +514,8 @@
     <div class="step-heading">
       <div class="brand-row">
         <img src="./logo-mark.png" class="brand-mark" alt="IFIUR" />
-        <div class="eyebrow" style="margin-bottom:0;">IFIUR · Prezzario interno</div>
-        <span class="version-badge">v0.2 beta</span>
+        <div class="eyebrow" style="margin-bottom:0;">Prezzario IFIUR</div>
+        <span class="version-badge">v0.3 beta</span>
       </div>
       <h1 style="margin-top:10px;">Cosa stai prezzando?</h1>
     </div>
@@ -610,7 +617,7 @@
     </div>
 
     <section class="card breakdown" id="breakdown-card">
-      <div class="breakdown-group-title" id="group-title-main">Fiori recisi</div>
+      <div class="breakdown-group-title" id="group-title-main">Fiori</div>
       <div class="breakdown-row">
         <span>Costo fornitore (IVA escl.)</span>
         <span class="val" id="b-costo">€0,00</span>
@@ -665,7 +672,7 @@
   </div>
 
   <footer id="footer-note">Fiori recisi · markup ×3 · IVA 10%</footer>
-  <div style="text-align:center; font-size:11px; color:var(--ink-soft); opacity:0.55; margin-top:-8px;">IFIUR · v0.2 (beta)</div>
+  <div style="text-align:center; font-size:11px; color:var(--ink-soft); opacity:0.55; margin-top:-8px;">Prezzario IFIUR · v0.3 (beta)</div>
 
 </main>
 
@@ -673,6 +680,7 @@
   const CATEGORIES = {
     fiori: {
       label: "Fiori recisi",
+      groupLabel: "Fiori",
       markup: 3,
       ivaVendita: 1.10,
       packagingType: "selectable",
@@ -683,6 +691,7 @@
     },
     piante: {
       label: "Piante",
+      groupLabel: "Pianta",
       markup: 2,
       ivaVendita: 1.10,
       packagingType: "fixed",
@@ -748,7 +757,7 @@
     document.getElementById("step4-eyebrow").textContent = config.label;
     document.getElementById("cost-hint").textContent = config.costHint;
     document.getElementById("footer-note").textContent = config.footerNote;
-    document.getElementById("group-title-main").textContent = config.label;
+    document.getElementById("group-title-main").textContent = config.groupLabel;
     document.getElementById("b-markup-label").textContent = "× " + config.markup + " (prezzo base)";
     document.getElementById("b-iva-finale-label").textContent = "+ IVA " + Math.round((config.ivaVendita - 1) * 100) + "% (su vendita)";
     document.getElementById("b-subtotal-label").textContent = config.subtotalLabel;
@@ -887,7 +896,7 @@
   accessoryToggle.addEventListener("change", () => {
     accessoryEnabled = accessoryToggle.checked;
     accessoryCard.style.display = accessoryEnabled ? "block" : "none";
-    accessoryBreakdown.style.display = accessoryEnabled ? "block" : "none";
+    accessoryBreakdown.style.display = accessoryEnabled ? "flex" : "none";
   });
 
   packButtons[0].classList.add("active");
