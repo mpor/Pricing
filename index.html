@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
-<title>Prezzario IFIUR</title>
+<title>Prezzario</title>
 <meta name="description" content="IFIUR — calcolo del prezzo di vendita a partire dal costo fornitore" />
 
 <link rel="manifest" href="./manifest.json" />
@@ -12,7 +12,7 @@
 <link rel="apple-touch-icon" href="./icon-192.png" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<meta name="apple-mobile-web-app-title" content="Prezzario IFIUR" />
+<meta name="apple-mobile-web-app-title" content="Prezzario" />
 
 <style>
   :root {
@@ -514,7 +514,7 @@
     <div class="step-heading">
       <div class="brand-row">
         <img src="./logo-mark.png" class="brand-mark" alt="IFIUR" />
-        <div class="eyebrow" style="margin-bottom:0;">Prezzario IFIUR</div>
+        <div class="eyebrow" style="margin-bottom:0;">Prezzario</div>
         <span class="version-badge">v0.3 beta</span>
       </div>
       <h1 style="margin-top:10px;">Cosa stai prezzando?</h1>
@@ -534,6 +534,32 @@
           <div class="cat-desc">Markup ×2 · coprivaso opzionale</div>
         </div>
       </button>
+      <button class="category-card" data-cat="corone">
+        <div class="emoji">🎓</div>
+        <div>
+          <div class="cat-name">Corone di laurea</div>
+          <div class="cat-desc">3 opzioni a prezzo fisso</div>
+        </div>
+      </button>
+    </div>
+  </div>
+
+  <!-- STEP 5: opzioni corone (prezzo fisso) -->
+  <div class="step" id="step-5">
+    <div class="step-heading">
+      <div class="eyebrow">Corone di laurea</div>
+      <h1>Che corona serve?</h1>
+    </div>
+    <section class="card stack-gap">
+      <div class="packaging-grid" id="corone-grid">
+        <button class="pack-btn" data-name="Semplice" data-price="40"><span class="name">Semplice</span><span class="price">€40,00</span></button>
+        <button class="pack-btn" data-name="Con Velo da Sposa" data-price="45"><span class="name">Con Velo da Sposa</span><span class="price">€45,00</span></button>
+        <button class="pack-btn" data-name="Con Fiorellini" data-price="50"><span class="name">Con Fiorellini</span><span class="price">€50,00</span></button>
+      </div>
+      <div class="hint">Prezzi IVA inclusa</div>
+    </section>
+    <div class="step-actions">
+      <button class="secondary-btn" data-reset>Nuovo calcolo</button>
     </div>
   </div>
 
@@ -574,7 +600,7 @@
 
       <div class="packaging-fixed" id="packaging-fixed" style="display:none;">
         <span class="name">Packaging standard</span>
-        <span class="price" id="packaging-fixed-price">€1,00</span>
+        <span class="price" id="packaging-fixed-price">€2,00</span>
       </div>
 
       <div class="accessory-toggle-row" id="accessory-toggle-row" style="display:none;">
@@ -672,7 +698,7 @@
   </div>
 
   <footer id="footer-note">Fiori recisi · markup ×3 · IVA 10%</footer>
-  <div style="text-align:center; font-size:11px; color:var(--ink-soft); opacity:0.55; margin-top:-8px;">Prezzario IFIUR · v0.3 (beta)</div>
+  <div style="text-align:center; font-size:11px; color:var(--ink-soft); opacity:0.55; margin-top:-8px;">Prezzario · v0.3 (beta)</div>
 
 </main>
 
@@ -695,11 +721,16 @@
       markup: 2,
       ivaVendita: 1.10,
       packagingType: "fixed",
-      fixedPackaging: 1,
+      fixedPackaging: 2,
       hasAccessory: true,
       costHint: "Prezzo pagato al fornitore per la pianta, IVA esclusa",
       footerNote: "Piante · markup ×2 · IVA 10% · arrotondato all'euro",
       subtotalLabel: "Prezzo pianta"
+    },
+    corone: {
+      label: "Corone di laurea",
+      type: "fixed-options",
+      footerNote: "Corone di laurea · prezzi fissi · IVA inclusa"
     }
   };
 
@@ -709,11 +740,13 @@
   let packagingValue = 0;
   let accessoryEnabled = false;
   let currentStep = 1;
-  const TOTAL_STEPS = 4;
+  const FLOW_DEFAULT = [1, 2, 3, 4];
+  const FLOW_CORONE = [1, 5, 4];
+  let flow = FLOW_DEFAULT;
 
   const costoInput = document.getElementById("costo");
   const costoCoprivasoInput = document.getElementById("costo-coprivaso");
-  const packButtons = document.querySelectorAll(".pack-btn");
+  const packButtons = document.querySelectorAll("#packaging-grid .pack-btn");
   const packagingGrid = document.getElementById("packaging-grid");
   const packagingFixed = document.getElementById("packaging-fixed");
   const packagingFixedPrice = document.getElementById("packaging-fixed-price");
@@ -730,9 +763,10 @@
 
   function renderProgress() {
     progressEl.innerHTML = "";
-    for (let i = 1; i <= TOTAL_STEPS; i++) {
+    const pos = flow.indexOf(currentStep) + 1;
+    for (let i = 1; i <= flow.length; i++) {
       const dot = document.createElement("div");
-      dot.className = "dot" + (i <= currentStep ? " done" : "");
+      dot.className = "dot" + (i <= pos ? " done" : "");
       progressEl.appendChild(dot);
     }
     backBtn.style.visibility = currentStep === 1 ? "hidden" : "visible";
@@ -752,6 +786,16 @@
     currentCategory = cat;
     const config = CATEGORIES[cat];
 
+    if (config.type === "fixed-options") {
+      flow = FLOW_CORONE;
+      document.getElementById("footer-note").textContent = config.footerNote;
+      document.querySelectorAll("#corone-grid .pack-btn").forEach((b) => b.classList.remove("active"));
+      goToStep(5);
+      return;
+    }
+    flow = FLOW_DEFAULT;
+    document.getElementById("breakdown-card").style.display = "";
+
     document.getElementById("step2-eyebrow").textContent = config.label;
     document.getElementById("step3-eyebrow").textContent = config.label;
     document.getElementById("step4-eyebrow").textContent = config.label;
@@ -765,7 +809,7 @@
     if (config.packagingType === "selectable") {
       packagingGrid.style.display = "grid";
       packagingFixed.style.display = "none";
-      const activeBtn = document.querySelector(".pack-btn.active") || packButtons[0];
+      const activeBtn = document.querySelector("#packaging-grid .pack-btn.active") || packButtons[0];
       packagingValue = parseFloat(activeBtn.dataset.value);
       packButtons.forEach((b) => b.classList.toggle("active", b === activeBtn));
     } else {
@@ -830,6 +874,19 @@
     }
   }
 
+  document.querySelectorAll("#corone-grid .pack-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll("#corone-grid .pack-btn").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      document.getElementById("step4-eyebrow").textContent = CATEGORIES.corone.label;
+      document.getElementById("prezzo-finale").textContent = formatEUR(parseFloat(btn.dataset.price));
+      document.getElementById("result-label").textContent = "Prezzo di vendita";
+      document.getElementById("result-sub").textContent = btn.dataset.name + " · IVA inclusa";
+      document.getElementById("breakdown-card").style.display = "none";
+      goToStep(4);
+    });
+  });
+
   document.querySelectorAll(".category-card").forEach((btn) => {
     btn.addEventListener("click", () => selectCategory(btn.dataset.cat));
   });
@@ -873,6 +930,7 @@
   function resetAll() {
     costoInput.value = "";
     costoCoprivasoInput.value = "";
+    flow = FLOW_DEFAULT;
     goToStep(1);
   }
 
@@ -882,7 +940,8 @@
   });
 
   backBtn.addEventListener("click", () => {
-    if (currentStep > 1) goToStep(currentStep - 1);
+    const i = flow.indexOf(currentStep);
+    if (i > 0) goToStep(flow[i - 1]);
   });
 
   packButtons.forEach((btn) => {

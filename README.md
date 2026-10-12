@@ -1,4 +1,4 @@
-# Prezzario IFIUR (v0.3 beta)
+# Prezzario (v0.3 beta)
 
 Web app installabile sul telefono per calcolare il prezzo di vendita a partire dal costo fornitore.
 

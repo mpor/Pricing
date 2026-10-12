@@ -1,7 +1,7 @@
 {
-  "name": "Prezzario IFIUR",
-  "short_name": "Prezzario IFIUR",
-  "description": "Prezzario IFIUR — calcolo del prezzo di vendita a partire dal costo fornitore",
+  "name": "Prezzario",
+  "short_name": "Prezzario",
+  "description": "Prezzario — calcolo del prezzo di vendita a partire dal costo fornitore",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
