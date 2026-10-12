@@ -556,7 +556,7 @@
         <button class="pack-btn" data-name="Con Velo da Sposa" data-price="45"><span class="name">Con Velo da Sposa</span><span class="price">€45,00</span></button>
         <button class="pack-btn" data-name="Con Fiorellini" data-price="50"><span class="name">Con Fiorellini</span><span class="price">€50,00</span></button>
       </div>
-      <div class="hint">Prezzi IVA inclusa</div>
+      <div class="hint">Prezzi IVA 10% inclusa</div>
     </section>
     <div class="step-actions">
       <button class="secondary-btn" data-reset>Nuovo calcolo</button>
@@ -697,7 +697,7 @@
     </div>
   </div>
 
-  <footer id="footer-note">Fiori recisi · markup ×3 · IVA 10%</footer>
+  <footer id="footer-note" style="visibility:hidden;">&nbsp;</footer>
   <div style="text-align:center; font-size:11px; color:var(--ink-soft); opacity:0.55; margin-top:-8px;">Prezzario · v0.4 (beta)</div>
 
 </main>
@@ -730,7 +730,7 @@
     corone: {
       label: "Corone di laurea",
       type: "fixed-options",
-      footerNote: "Corone di laurea · prezzi fissi · IVA inclusa"
+      footerNote: "Corone di laurea · prezzi fissi · IVA 10% inclusa"
     }
   };
 
@@ -776,6 +776,7 @@
     document.querySelectorAll(".step").forEach((s) => s.classList.remove("visible"));
     document.getElementById("step-" + n).classList.add("visible");
     currentStep = n;
+    document.getElementById("footer-note").style.visibility = n === 1 ? "hidden" : "visible";
     renderProgress();
     if (n === 2) {
       setTimeout(() => costoInput.focus(), 50);
@@ -881,7 +882,7 @@
       document.getElementById("step4-eyebrow").textContent = CATEGORIES.corone.label;
       document.getElementById("prezzo-finale").textContent = formatEUR(parseFloat(btn.dataset.price));
       document.getElementById("result-label").textContent = "Prezzo di vendita";
-      document.getElementById("result-sub").textContent = btn.dataset.name + " · IVA inclusa";
+      document.getElementById("result-sub").textContent = btn.dataset.name + " · IVA 10% inclusa";
       document.getElementById("breakdown-card").style.display = "none";
       goToStep(4);
     });
