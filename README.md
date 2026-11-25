@@ -1,4 +1,4 @@
-# Prezzario (v0.4 beta)
+# Prezzario (v0.5 beta)
 
 Web app installabile sul telefono per calcolare il prezzo di vendita a partire dal costo fornitore.
 

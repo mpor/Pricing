@@ -515,6 +515,7 @@
       <div class="brand-row">
         <img src="./logo-mark.png" class="brand-mark" alt="IFIUR" />
         <div class="eyebrow" style="margin-bottom:0;">Prezzario</div>
+        <span class="version-badge">v0.5 beta</span>
       </div>
       <h1 style="margin-top:10px;">Cosa stai prezzando?</h1>
     </div>
@@ -523,14 +524,14 @@
         <div class="emoji">🌷</div>
         <div>
           <div class="cat-name">Fiori recisi</div>
-          <div class="cat-desc">Markup ×3 · packaging a scelta</div>
+          <div class="cat-desc">Markup ×2,5 · packaging a scelta</div>
         </div>
       </button>
       <button class="category-card" data-cat="piante">
         <div class="emoji">🪴</div>
         <div>
           <div class="cat-name">Piante</div>
-          <div class="cat-desc">Markup ×2 · coprivaso opzionale</div>
+          <div class="cat-desc">Markup ×2,5 · coprivaso opzionale</div>
         </div>
       </button>
       <button class="category-card" data-cat="corone">
@@ -648,7 +649,7 @@
         <span class="val" id="b-costo">€0,00</span>
       </div>
       <div class="breakdown-row">
-        <span id="b-markup-label">× 3 (prezzo base)</span>
+        <span id="b-markup-label">× 2,5 (prezzo base)</span>
         <span class="val" id="b-base">€0,00</span>
       </div>
       <div class="breakdown-row">
@@ -697,7 +698,7 @@
   </div>
 
   <footer id="footer-note" style="visibility:hidden;">&nbsp;</footer>
-  <div style="text-align:center; font-size:11px; color:var(--ink-soft); opacity:0.55; margin-top:-8px;">Prezzario · v0.4 (beta)</div>
+  <div style="text-align:center; font-size:11px; color:var(--ink-soft); opacity:0.55; margin-top:-8px;">Prezzario · v0.5 (beta)</div>
 
 </main>
 
@@ -706,24 +707,24 @@
     fiori: {
       label: "Fiori recisi",
       groupLabel: "Fiori",
-      markup: 3,
+      markup: 2.5,
       ivaVendita: 1.10,
       packagingType: "selectable",
       hasAccessory: false,
       costHint: "Prezzo pagato al fornitore per lo stelo, IVA esclusa",
-      footerNote: "Fiori recisi · markup ×3 · IVA 10% · arrotondato all'euro",
+      footerNote: "Fiori recisi · markup ×2,5 · IVA 10% · arrotondato all'euro",
       subtotalLabel: "Prezzo fiori"
     },
     piante: {
       label: "Piante",
       groupLabel: "Pianta",
-      markup: 2,
+      markup: 2.5,
       ivaVendita: 1.10,
       packagingType: "fixed",
       fixedPackaging: 2,
       hasAccessory: true,
       costHint: "Prezzo pagato al fornitore per la pianta, IVA esclusa",
-      footerNote: "Piante · markup ×2 · IVA 10% · arrotondato all'euro",
+      footerNote: "Piante · markup ×2,5 · IVA 10% · arrotondato all'euro",
       subtotalLabel: "Prezzo pianta"
     },
     corone: {
@@ -802,7 +803,7 @@
     document.getElementById("cost-hint").textContent = config.costHint;
     document.getElementById("footer-note").textContent = config.footerNote;
     document.getElementById("group-title-main").textContent = config.groupLabel;
-    document.getElementById("b-markup-label").textContent = "× " + config.markup + " (prezzo base)";
+    document.getElementById("b-markup-label").textContent = "× " + String(config.markup).replace(".", ",") + " (prezzo base)";
     document.getElementById("b-iva-finale-label").textContent = "+ IVA " + Math.round((config.ivaVendita - 1) * 100) + "% (su vendita)";
     document.getElementById("b-subtotal-label").textContent = config.subtotalLabel;
 
